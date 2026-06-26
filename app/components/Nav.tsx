@@ -165,12 +165,12 @@ export default function Nav() {
           />
         </button>
 
-        <ul className="flex flex-col gap-1 list-none">
+        <ul className="flex flex-col gap-6 list-none text-center items-center justify-center">
           {navLinks.map((link) => (
             <li key={link.label}>
               <a
                 href={link.href}
-                className="block px-3 py-3 rounded-lg text-base font-medium transition-colors duration-150"
+                className="block px-4 py-2 text-2xl font-semibold transition-colors duration-150"
                 style={{ color: '#D9E8E2', textDecoration: 'none' }}
                 onClick={() => setMobileOpen(false)}
                 onMouseEnter={(e) =>
@@ -186,24 +186,24 @@ export default function Nav() {
           ))}
         </ul>
 
-        <div className="mt-6 flex flex-col gap-3">
+        <div className="mt-8 flex flex-col gap-4 w-full max-w-xs items-stretch">
           <button
             type="button"
-            className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-base font-medium"
             style={{ background: 'rgba(217,232,226,0.08)', color: '#D9E8E2' }}
           >
             <img
               src="/icons/search.svg"
               alt=""
-              width={16}
-              height={16}
+              width={18}
+              height={18}
               style={{ filter: 'invert(85%) sepia(15%) hue-rotate(120deg)' }}
             />
             Search
           </button>
           <a
             href="#pricing"
-            className="btn-primary w-full justify-center"
+            className="btn-primary w-full justify-center py-3 text-base"
             onClick={() => setMobileOpen(false)}
           >
             Get Started

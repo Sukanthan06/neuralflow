@@ -162,10 +162,10 @@ export default function Footer() {
           </button>
         </div>
 
-        {/* Link grid: 4 columns */}
+        {/* Link grid: responsive columns */}
         <nav
           aria-label="Footer navigation"
-          className="grid grid-cols-2 md:grid-cols-4 gap-10 mb-14"
+          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10 mb-14"
         >
           {footerColumns.map((col) => (
             <div key={col.heading}>

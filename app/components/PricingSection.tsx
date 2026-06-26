@@ -153,11 +153,35 @@ const PricingCard = memo(function PricingCard({
   isAnnualRef,
   symbolRef,
 }: PricingCardProps) {
+  if (process.env.NODE_ENV === 'development') {
+    console.log('card render')
+  }
   return (
     <article
       className={`pricing-card flex flex-col gap-6 ${isFeatured ? 'featured' : ''}`}
       aria-label={`${label} pricing plan`}
+      style={isFeatured ? { paddingTop: '3.25rem' } : {}}
     >
+      {badge && (
+        <span
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: '#FFC801',
+            color: '#172B36',
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: '0.7rem',
+            fontWeight: 700,
+            padding: '4px 12px',
+            borderRadius: '0 0 8px 8px',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {badge}
+        </span>
+      )}
       {/* Plan header */}
       <div className="flex items-start justify-between gap-2">
         <div>
@@ -182,23 +206,6 @@ const PricingCard = memo(function PricingCard({
             {tagline}
           </p>
         </div>
-        {badge && (
-          <span
-            style={{
-              fontFamily: 'Inter, sans-serif',
-              fontSize: '0.7rem',
-              fontWeight: 700,
-              padding: '0.2rem 0.6rem',
-              borderRadius: '50px',
-              background: 'rgba(255,200,1,0.15)',
-              color: '#FFC801',
-              border: '1px solid rgba(255,200,1,0.3)',
-              flexShrink: 0,
-            }}
-          >
-            {badge}
-          </span>
-        )}
       </div>
 
       {/* Price — isolated DOM update, no re-render */}
@@ -448,7 +455,7 @@ export default function PricingSection() {
           </span>
 
           {/* Currency dropdown */}
-          <div className="relative">
+          <div className="relative w-full md:w-auto">
             <label htmlFor="currency-select" className="sr-only">
               Select currency
             </label>

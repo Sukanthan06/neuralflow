@@ -49,7 +49,7 @@ export default function Hero() {
 
       {/* FIX 6: Floating arrow-trending-up — gentle 3s float, forsythia glow */}
       <div
-        className="float-icon-a absolute"
+        className="float-icon-a absolute hidden md:block"
         aria-hidden="true"
         style={{ top: '18%', left: '8%', opacity: 0.55 }}
       >
@@ -69,7 +69,7 @@ export default function Hero() {
 
       {/* FIX 6: Floating chart-pie — 1.5s delay, saffron glow */}
       <div
-        className="float-icon-b absolute"
+        className="float-icon-b absolute hidden md:block"
         aria-hidden="true"
         style={{ top: '22%', right: '7%', opacity: 0.5 }}
       >
@@ -141,10 +141,9 @@ export default function Hero() {
 
         {/* Headline */}
         <h1
-          className="hero-animate-1"
+          className="hero-animate-1 text-3xl md:text-6xl"
           style={{
             fontFamily: "'JetBrains Mono', monospace",
-            fontSize: 'clamp(2.25rem, 6vw, 4rem)',
             fontWeight: 700,
             lineHeight: 1.1,
             letterSpacing: '-0.02em',
@@ -173,13 +172,13 @@ export default function Hero() {
         </p>
 
         {/* CTAs */}
-        <div className="hero-animate-3 flex flex-wrap gap-4 justify-center">
-          <a href="#pricing" className="btn-primary">
+        <div className="hero-animate-3 flex flex-col md:flex-row gap-4 justify-center w-full max-w-sm md:max-w-none px-4 md:px-0">
+          <a href="#pricing" className="btn-primary w-full md:w-auto justify-center">
             <img src="/icons/arrow-trending-up.svg" alt="" width={18} height={18}
               style={{ filter: 'brightness(0)' }} />
             Start Free Trial
           </a>
-          <a href="#features" className="btn-secondary">
+          <a href="#features" className="btn-secondary w-full md:w-auto justify-center">
             Explore Features
             <img src="/icons/chevron-right.svg" alt="" width={16} height={16}
               style={{ filter: 'invert(85%) sepia(15%) hue-rotate(120deg)' }} />

@@ -56,7 +56,6 @@ const features = [
 export default function FeaturesSection() {
   const [activeIndex, setActiveIndex] = useState<number | null>(null)
   const [openAccordion, setOpenAccordion] = useState<number | null>(null)
-  const [isMobile, setIsMobile] = useState(false)
 
   // Refs for cross-breakpoint state transfer
   const activeIndexRef  = useRef<number | null>(null)
@@ -64,53 +63,44 @@ export default function FeaturesSection() {
   const isMobileRef     = useRef(false)
   const debounceTimer   = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const updateActiveIndex = (idx: number | null) => {
-    activeIndexRef.current = idx
-    setActiveIndex(idx)
-  }
-  const updateOpenAccordion = (idx: number | null) => {
-    openAccordionRef.current = idx
-    setOpenAccordion(idx)
-  }
+  useEffect(() => {
+    isMobileRef.current = window.innerWidth < 768
 
-  // FIX 8: 50ms debounced resize handler — transfers state across breakpoint
-  const handleResize = useCallback(() => {
-    if (debounceTimer.current) clearTimeout(debounceTimer.current)
-    debounceTimer.current = setTimeout(() => {
-      const nowMobile = window.innerWidth < 768
-      const wasMobile = isMobileRef.current
-      if (nowMobile !== wasMobile) {
-        isMobileRef.current = nowMobile
-        setIsMobile(nowMobile)
-        if (nowMobile) {
-          // Desktop → Mobile: transfer hovered bento → open accordion
-          if (activeIndexRef.current !== null) {
-            updateOpenAccordion(activeIndexRef.current)
-          }
-        } else {
-          // Mobile → Desktop: transfer open accordion → active bento
-          if (openAccordionRef.current !== null) {
-            updateActiveIndex(openAccordionRef.current)
+    const handleResize = () => {
+      if (debounceTimer.current) clearTimeout(debounceTimer.current)
+      debounceTimer.current = setTimeout(() => {
+        const nowMobile = window.innerWidth < 768
+        const wasMobile = isMobileRef.current
+        if (nowMobile !== wasMobile) {
+          isMobileRef.current = nowMobile
+          if (nowMobile) {
+            // Desktop → Mobile: transfer hovered bento → open accordion
+            const index = activeIndexRef.current
+            if (index !== null) {
+              setOpenAccordion(index)
+              openAccordionRef.current = index
+            }
+          } else {
+            // Mobile → Desktop: transfer open accordion → active bento
+            const index = openAccordionRef.current
+            activeIndexRef.current = index
+            setActiveIndex(index)
           }
         }
-      }
-    }, 50)
-  }, [])
+      }, 50)
+    }
 
-  useEffect(() => {
-    const initialMobile = window.innerWidth < 768
-    isMobileRef.current = initialMobile
-    setIsMobile(initialMobile)
     window.addEventListener('resize', handleResize)
     return () => {
       window.removeEventListener('resize', handleResize)
       if (debounceTimer.current) clearTimeout(debounceTimer.current)
     }
-  }, [handleResize])
+  }, [])
 
   const toggleAccordion = (idx: number) => {
     const next = openAccordionRef.current === idx ? null : idx
-    updateOpenAccordion(next)
+    openAccordionRef.current = next
+    setOpenAccordion(next)
   }
 
   return (
@@ -137,7 +127,7 @@ export default function FeaturesSection() {
 
           <h2 style={{
             fontFamily: "'JetBrains Mono', monospace",
-            fontSize: 'clamp(1.75rem, 4vw, 2.75rem)',
+            fontSize: 'clamp(1.5rem, 4vw, 2.5rem)',
             fontWeight: 700,
             color: '#172B36',
             lineHeight: 1.15,
@@ -167,119 +157,115 @@ export default function FeaturesSection() {
         </div>
 
         {/* DESKTOP: Bento Grid (≥768px) — FIX 1 */}
-        {!isMobile && (
-          <div className="bento-grid" role="list" aria-label="Feature cards">
-            {features.map((feature, idx) => {
-              const isCard6 = idx === 5
-              return (
-                <article
-                  key={feature.id}
-                  className={`bento-card ${activeIndex === idx ? 'active' : ''}`}
-                  role="listitem"
-                  tabIndex={0}
-                  aria-label={feature.title}
-                  onMouseEnter={() => { activeIndexRef.current = idx; setActiveIndex(idx) }}
-                  onMouseLeave={() => { activeIndexRef.current = null; setActiveIndex(null) }}
-                  onFocus={() => { activeIndexRef.current = idx; setActiveIndex(idx) }}
-                  onBlur={() => { activeIndexRef.current = null; setActiveIndex(null) }}
+        <div className="hidden md:grid bento-grid" role="list" aria-label="Feature cards">
+          {features.map((feature, idx) => {
+            const isCard6 = idx === 5
+            return (
+              <article
+                key={feature.id}
+                className={`bento-card ${activeIndex === idx ? 'active' : ''}`}
+                role="listitem"
+                tabIndex={0}
+                aria-label={feature.title}
+                onMouseEnter={() => { activeIndexRef.current = idx; setActiveIndex(idx) }}
+                onMouseLeave={() => { activeIndexRef.current = null; setActiveIndex(null) }}
+                onFocus={() => { activeIndexRef.current = idx; setActiveIndex(idx) }}
+                onBlur={() => { activeIndexRef.current = null; setActiveIndex(null) }}
+              >
+                {/* Card 6 is horizontal: icon left, text right */}
+                <div className={isCard6 ? 'bento-icon' : 'bento-icon'}>
+                  <img src={feature.icon} alt={feature.altText} width={24} height={24} />
+                </div>
+
+                <div className={isCard6 ? 'bento-card-text' : ''}>
+                  {/* FIX 5: typography */}
+                  <h3 className="bento-title">{feature.title}</h3>
+                  <p className="bento-desc">{feature.description}</p>
+
+                  {/* FIX 5: Learn more with arrow-path.svg, #FF9932 color */}
+                  <span className="bento-learn-more">
+                    <img src="/icons/arrow-path.svg" alt="" width={13} height={13} />
+                    Learn more
+                  </span>
+                </div>
+              </article>
+            )
+          })}
+        </div>
+
+        {/* MOBILE: Accordion (<768px) — FIX 8 */}
+        <div className="block md:hidden accordion-list" role="list" aria-label="Feature accordion">
+          {features.map((feature, idx) => {
+            const isOpen = openAccordion === idx
+            return (
+              <div
+                key={feature.id}
+                className={`accordion-item ${isOpen ? 'open' : ''} w-full overflow-hidden`}
+                role="listitem"
+              >
+                <button
+                  type="button"
+                  className="accordion-header"
+                  aria-expanded={isOpen}
+                  aria-controls={`accordion-body-${idx}`}
+                  id={`accordion-header-${idx}`}
+                  onClick={() => toggleAccordion(idx)}
                 >
-                  {/* Card 6 is horizontal: icon left, text right */}
-                  <div className={isCard6 ? 'bento-icon' : 'bento-icon'}>
-                    <img src={feature.icon} alt={feature.altText} width={24} height={24} />
+                  <div className="accordion-header-left">
+                    <div
+                      className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+                      style={{ background: '#114C5A' }}
+                    >
+                      <img src={feature.icon} alt="" width={18} height={18}
+                        style={{ filter: 'invert(1) brightness(2)' }} />
+                    </div>
+                    <span style={{
+                      fontFamily: "'JetBrains Mono', monospace",
+                      fontSize: '0.95rem',
+                      fontWeight: 600,
+                      color: '#172B36',
+                    }}>
+                      {feature.title}
+                    </span>
                   </div>
+                  {/* FIX 8: chevron-down rotates 180deg on open via CSS */}
+                  <img
+                    src="/icons/chevron-down.svg"
+                    alt={isOpen ? 'Collapse' : 'Expand'}
+                    width={20}
+                    height={20}
+                    className="accordion-chevron"
+                    style={{ filter: 'invert(25%) sepia(60%) saturate(300%) hue-rotate(160deg)' }}
+                  />
+                </button>
 
-                  <div className={isCard6 ? 'bento-card-text' : ''}>
-                    {/* FIX 5: typography */}
-                    <h3 className="bento-title">{feature.title}</h3>
-                    <p className="bento-desc">{feature.description}</p>
-
-                    {/* FIX 5: Learn more with arrow-path.svg, #FF9932 color */}
-                    <span className="bento-learn-more">
+                {/* FIX 8: max-height 0 → 600px transition */}
+                <div
+                  id={`accordion-body-${idx}`}
+                  role="region"
+                  aria-labelledby={`accordion-header-${idx}`}
+                  className="accordion-body"
+                  style={{ maxHeight: isOpen ? '600px' : '0' }}
+                >
+                  <div className="accordion-body-inner">
+                    <p style={{
+                      fontFamily: "'Inter', sans-serif",
+                      fontSize: '0.875rem',
+                      color: '#114C5A',
+                      lineHeight: 1.7,
+                    }}>
+                      {feature.description}
+                    </p>
+                    <span className="bento-learn-more" style={{ marginTop: '1rem', display: 'inline-flex' }}>
                       <img src="/icons/arrow-path.svg" alt="" width={13} height={13} />
                       Learn more
                     </span>
                   </div>
-                </article>
-              )
-            })}
-          </div>
-        )}
-
-        {/* MOBILE: Accordion (<768px) — FIX 8 */}
-        {isMobile && (
-          <div className="accordion-list" role="list" aria-label="Feature accordion">
-            {features.map((feature, idx) => {
-              const isOpen = openAccordion === idx
-              return (
-                <div
-                  key={feature.id}
-                  className={`accordion-item ${isOpen ? 'open' : ''}`}
-                  role="listitem"
-                >
-                  <button
-                    type="button"
-                    className="accordion-header"
-                    aria-expanded={isOpen}
-                    aria-controls={`accordion-body-${idx}`}
-                    id={`accordion-header-${idx}`}
-                    onClick={() => toggleAccordion(idx)}
-                  >
-                    <div className="accordion-header-left">
-                      <div
-                        className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
-                        style={{ background: '#114C5A' }}
-                      >
-                        <img src={feature.icon} alt="" width={18} height={18}
-                          style={{ filter: 'invert(1) brightness(2)' }} />
-                      </div>
-                      <span style={{
-                        fontFamily: "'JetBrains Mono', monospace",
-                        fontSize: '0.95rem',
-                        fontWeight: 600,
-                        color: '#172B36',
-                      }}>
-                        {feature.title}
-                      </span>
-                    </div>
-                    {/* FIX 8: chevron-down rotates 180deg on open via CSS */}
-                    <img
-                      src="/icons/chevron-down.svg"
-                      alt={isOpen ? 'Collapse' : 'Expand'}
-                      width={20}
-                      height={20}
-                      className="accordion-chevron"
-                      style={{ filter: 'invert(25%) sepia(60%) saturate(300%) hue-rotate(160deg)' }}
-                    />
-                  </button>
-
-                  {/* FIX 8: max-height 0 → 500px transition */}
-                  <div
-                    id={`accordion-body-${idx}`}
-                    role="region"
-                    aria-labelledby={`accordion-header-${idx}`}
-                    className="accordion-body"
-                    style={{ maxHeight: isOpen ? '500px' : '0' }}
-                  >
-                    <div className="accordion-body-inner">
-                      <p style={{
-                        fontFamily: "'Inter', sans-serif",
-                        fontSize: '0.875rem',
-                        color: '#114C5A',
-                        lineHeight: 1.7,
-                      }}>
-                        {feature.description}
-                      </p>
-                      <span className="bento-learn-more" style={{ marginTop: '1rem', display: 'inline-flex' }}>
-                        <img src="/icons/arrow-path.svg" alt="" width={13} height={13} />
-                        Learn more
-                      </span>
-                    </div>
-                  </div>
                 </div>
-              )
-            })}
-          </div>
-        )}
+              </div>
+            )
+          })}
+        </div>
       </div>
     </section>
   )
